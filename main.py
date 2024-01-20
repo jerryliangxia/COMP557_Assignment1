@@ -7,11 +7,11 @@ import argparse
 import random
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--file", type=str, default="bunny.obj")
+parser.add_argument("--file", type=str, default="cube.obj")
 parser.add_argument("--width", type=int, default=1440, help="Width of off screen framebuffer")
 parser.add_argument("--height", type=int, default=720, help="Height of off screen framebuffer")
 parser.add_argument("--px", type=int, default=10, help="Size of pixel in on screen framebuffer")
-parser.add_argument("--test", type=int, default=1, help="run a numbered unit test")
+parser.add_argument("--test", type=int, default=2, help="run a numbered unit test")
 args = parser.parse_args()
 
 ti.init(arch=ti.cpu) # can also use ti.gpu
@@ -44,6 +44,27 @@ def draw_bounding_boxes(Vt, T, pixti, width, height):
             for j in range(min_y, max_y):
                 pixti[i, j] = color
 
+def draw_triangles_barycentric(Vt, T, pixti, width, height):
+    for t in T:
+        v1, v2, v3 = Vt[t[0]], Vt[t[1]], Vt[t[2]]
+
+        min_x = max(0, int(min(v1[0], v2[0], v3[0])))
+        max_x = min(width, int(max(v1[0], v2[0], v3[0])))
+        min_y = max(0, int(min(v1[1], v2[1], v3[1])))
+        max_y = min(height, int(max(v1[1], v2[1], v3[1])))
+
+        for i in range(min_x, max_x):
+            for j in range(min_y, max_y):
+                w1 = ((v1[0] * (v3[1] - v1[1]) + (j - v1[1]) * (v3[0] - v1[0]) - i * (v3[1] - v1[1])) /
+                      ((v2[1] - v1[1]) * (v3[0] - v1[0]) - (v2[0] - v1[0]) * (v3[1] - v1[1])))
+                w2 = (j - v1[1] - w1 * (v2[1] - v1[1])) / (v3[1] - v1[1])
+                if w1 >= 0 and w2 >= 0 and (w1 + w2) <= 1:
+                    u = w1
+                    v = w2
+                    w = 1 - w1 - w2
+                    pixti[i, j] = (w, u, v)
+
+
 gui = ti.GUI("Rasterizer", res=(width*px, height*px))
 t = 0   # time step for time varying transformaitons
 translate = np.array([ width/2,height/2,0 ]) # translate to center of window
@@ -68,6 +89,8 @@ while gui.running:
     pixti.from_numpy(pix)
     if args.test == 1:
         draw_bounding_boxes(Vt, T, pixti, width, height)
+    if args.test == 2:
+        draw_triangles_barycentric(Vt, T, pixti, width, height)
     copy_pixels()
     gui.set_image(pixels)
     gui.show()
