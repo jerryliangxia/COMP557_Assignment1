@@ -42,8 +42,8 @@ def draw_bounding_boxes(Vt, T, pixti, width, height):
         max_y = min(height, int(max(v1[1], v2[1], v3[1])))
 
         color = (random.random(), random.random(), random.random())
-        for i in range(min_x, max_x):
-            for j in range(min_y, max_y):
+        for i in range(min_x, max_x + 1):
+            for j in range(min_y, max_y + 1):
                 pixti[i, j] = color
 
 def draw_triangles_barycentric(Vt, T, pixti, width, height):
@@ -55,8 +55,8 @@ def draw_triangles_barycentric(Vt, T, pixti, width, height):
         min_y = max(0, int(min(v1[1], v2[1], v3[1])))
         max_y = min(height, int(max(v1[1], v2[1], v3[1])))
 
-        for i in range(min_x, max_x):
-            for j in range(min_y, max_y):
+        for i in range(min_x, max_x + 1):
+            for j in range(min_y, max_y + 1):
                 w1 = ((v1[0] * (v3[1] - v1[1]) + (j - v1[1]) * (v3[0] - v1[0]) - i * (v3[1] - v1[1])) /
                       ((v2[1] - v1[1]) * (v3[0] - v1[0]) - (v2[0] - v1[0]) * (v3[1] - v1[1])))
                 w2 = (j - v1[1] - w1 * (v2[1] - v1[1])) / (v3[1] - v1[1])
